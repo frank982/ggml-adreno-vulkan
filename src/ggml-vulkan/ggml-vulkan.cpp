@@ -4299,7 +4299,9 @@ vk_device ggml_vk_get_device(size_t idx) {
             device->coopmat_support = false;
         }
 
-        device->integer_dot_product = device->integer_dot_product && shader_integer_dot_product_props.integerDotProduct4x8BitPackedSignedAccelerated;
+        device->integer_dot_product = device->integer_dot_product &&
+            (shader_integer_dot_product_props.integerDotProduct4x8BitPackedSignedAccelerated ||
+             shader_integer_dot_product_props.integerDotProduct4x8BitPackedMixedSignednessAccelerated);
 
         device->min_imported_host_pointer_alignment = external_memory_host_props.minImportedHostPointerAlignment;
 
@@ -5146,7 +5148,8 @@ static void ggml_vk_print_gpu_info(size_t idx) {
     const bool uma = props2.properties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu;
 
     integer_dot_product = integer_dot_product
-                       && shader_integer_dot_product_props.integerDotProduct4x8BitPackedSignedAccelerated
+                       && (shader_integer_dot_product_props.integerDotProduct4x8BitPackedSignedAccelerated
+                           || shader_integer_dot_product_props.integerDotProduct4x8BitPackedMixedSignednessAccelerated)
                        && shader_integer_dot_product_features.shaderIntegerDotProduct;
 
     coopmat_support = coopmat_support

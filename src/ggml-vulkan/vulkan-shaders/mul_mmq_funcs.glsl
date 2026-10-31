@@ -96,8 +96,10 @@ ACC_TYPE mmq_dot_product(const uint ib_a) {
     int32_t q_sum = 0;
     [[unroll]] for (uint iqs = 0; iqs < 4; iqs++) {
         const uint32_t vui = cache_a[ib_a].qs[iqs];
-        const i32vec2 qs_a = i32vec2( vui       & 0x0F0F0F0F,
-                                     (vui >> 4) & 0x0F0F0F0F);
+        const u32vec2 qs_a = u32vec2(
+            vui       & 0x0F0F0F0F,
+            (vui >> 4) & 0x0F0F0F0F
+        );
 
         const int32_t qs_b0 = cache_b.qs[iqs];
         const int32_t qs_b1 = cache_b.qs[iqs + 4];
@@ -107,7 +109,8 @@ ACC_TYPE mmq_dot_product(const uint ib_a) {
     }
 
 #ifdef DATA_A_Q4_0
-    return ACC_TYPE(float(cache_a[ib_a].dm) * (float(q_sum) * float(cache_b.ds.x) - 8.0 * float(cache_b.ds.y)));
+    return ACC_TYPE(float(cache_a[ib_a].dm) *
+        (float(q_sum) * float(cache_b.ds.x) - 8.0 * float(cache_b.ds.y)));
 #else // DATA_A_Q4_1
     return ACC_TYPE(float(q_sum) * float(cache_a[ib_a].dm.x) * float(cache_b.ds.x) + float(cache_a[ib_a].dm.y) * float(cache_b.ds.y));
 #endif
@@ -168,10 +171,10 @@ ACC_TYPE mmq_dot_product(const uint ib_a) {
     [[unroll]] for (uint iqs = 0; iqs < 4; iqs++) {
         const uint32_t vui = cache_a[ib_a].qs[iqs];
         const int32_t qh = int32_t(cache_a[ib_a].qh >> (4 * iqs));
-        const int32_t qs_a0 = int32_t(vui & 0x0F0F0F0F)
-                         | ((qh & 0xF) * 0x02040810) & 0x10101010; // (0,1,2,3) -> (4,12,20,28)
-        const int32_t qs_a1 = int32_t((vui >> 4) & 0x0F0F0F0F)
-                         | (((qh >> 16) & 0xF) * 0x02040810) & 0x10101010; // (16,17,18,19) -> (4,12,20,28)
+        const uint32_t qs_a0 = uint32_t(vui & 0x0F0F0F0F)
+                         | uint32_t((qh & 0xF) * 0x02040810) & 0x10101010; // (0,1,2,3) -> (4,12,20,28)
+        const uint32_t qs_a1 = uint32_t((vui >> 4) & 0x0F0F0F0F)
+                         | uint32_t(((qh >> 16) & 0xF) * 0x02040810) & 0x10101010; // (16,17,18,19) -> (4,12,20,28)
 
         const int32_t qs_b0 = cache_b.qs[iqs];
         const int32_t qs_b1 = cache_b.qs[iqs + 4];
@@ -369,8 +372,8 @@ ACC_TYPE mmq_dot_product(const uint ib_a) {
 
     [[unroll]] for (uint iqs = 0; iqs < 8; iqs++) {
         const uint8_t scale = cache_a[ib_a].scales[iqs / 4];
-        const int32_t scale_m = int32_t(scale >> 4) * 0x01010101; // Duplicate 8-bit value across 32-bits.
-        const int32_t qs_a = int32_t((cache_a[ib_a].qs[iqs / 4] >> ((iqs % 4) * 2)) & 0x03030303);
+        const uint32_t scale_m = uint32_t(scale >> 4) * 0x01010101u; // Duplicate 8-bit value across 32-bits.
+        const uint32_t qs_a = (cache_a[ib_a].qs[iqs / 4] >> ((iqs % 4) * 2)) & 0x03030303u;
 
         sum_d += dotPacked4x8EXT(qs_a, cache_b.qs[iqs]) * (scale & 0xF);
         sum_m += dotPacked4x8EXT(scale_m, cache_b.qs[iqs]);
