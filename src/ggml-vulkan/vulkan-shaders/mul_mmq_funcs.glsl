@@ -516,7 +516,7 @@ ACC_TYPE mmq_dot_product(const uint ib_a) {
 
     [[unroll]] for (uint iqs = 0; iqs < 8; iqs++) {
 #if defined(DATA_A_Q4_K)
-        const int32_t qs_a = int32_t((cache_a[ib_a].qs[iqs / 2] >> ((iqs % 2) * 4)) & 0x0F0F0F0F);
+        const uint32_t qs_a = uint32_t((cache_a[ib_a].qs[iqs / 2] >> ((iqs % 2) * 4)) & 0x0F0F0F0F);
 #else // defined(DATA_A_Q5_K)
         const int32_t qs_a = cache_a[ib_a].qs[iqs];
 #endif
